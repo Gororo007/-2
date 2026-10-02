@@ -4,6 +4,7 @@ import '../models/page_result.dart';
 
 abstract interface class BookRepository {
   Future<PageResult<Book>> find(BookQuery query);
+  Future<List<Book>> getAllRaw();
   Future<Book?> findById(int id);
   Future<Book> create(Book book);
   Future<Book> update(Book book);

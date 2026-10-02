@@ -114,6 +114,12 @@ class _AuthorListScreenState extends State<AuthorListScreen> {
       appBar: AppBar(
         title: const Text('Каталог авторов'),
         actions: [
+          FilledButton.icon(
+            onPressed: () => context.go('/authors/new'),
+            icon: const Icon(Icons.add),
+            label: const Text('Создать автора'),
+          ),
+          const SizedBox(width: 12),
           Row(
             children: [
               const Text('Удалённые'),
@@ -177,7 +183,7 @@ class _AuthorListScreenState extends State<AuthorListScreen> {
                   width: 180,
                   child: DropdownButtonFormField<String?>(
                     decoration: const InputDecoration(labelText: 'Страна'),
-                    value: notifier.query.country,
+                    initialValue: notifier.query.country,
                     items: const [
                       DropdownMenuItem(value: null, child: Text('Все страны')),
                       DropdownMenuItem(value: 'Россия', child: Text('Россия')),
@@ -254,9 +260,9 @@ class _AuthorListScreenState extends State<AuthorListScreen> {
       ],
       actions: (a) => [
         IconButton(
-          icon: const Icon(Icons.chevron_right),
-          tooltip: 'Карточка автора',
-          onPressed: () => context.go('/authors/${a.id}'),
+          icon: const Icon(Icons.edit),
+          tooltip: 'Редактировать',
+          onPressed: () => context.go('/authors/${a.id}/edit'),
         ),
         if (a.isDeleted)
           IconButton(
@@ -291,9 +297,12 @@ class _AuthorListScreenState extends State<AuthorListScreen> {
             ),
             title: Text(a.fullName, style: TextStyle(decoration: a.isDeleted ? TextDecoration.lineThrough : null)),
             subtitle: Text('${a.country} · родился в ${a.birthYear} г.'),
-            trailing: IconButton(
-              icon: const Icon(Icons.chevron_right),
-              onPressed: () => context.go('/authors/${a.id}'),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(icon: const Icon(Icons.edit), onPressed: () => context.go('/authors/${a.id}/edit')),
+                IconButton(icon: const Icon(Icons.chevron_right), onPressed: () => context.go('/authors/${a.id}')),
+              ],
             ),
           ),
         );

@@ -1,16 +1,46 @@
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/book.dart';
 import '../models/book_query.dart';
 import '../models/page_result.dart';
 import 'book_repository.dart';
 import 'seed_data.dart';
 
-class InMemoryBookRepository implements BookRepository {
-  final List<Book> _books = [...seedBooks];
-  int _nextId = seedBooks.length + 1;
+class PersistentBookRepository implements BookRepository {
+  static const _key = 'books_v1';
+  final SharedPreferences _prefs;
+  List<Book> _books = [];
+
+  PersistentBookRepository(this._prefs) {
+    _restore();
+  }
+
+  void _restore() {
+    final raw = _prefs.getString(_key);
+    if (raw == null) {
+      _books = [...seedBooks];
+      _persist();
+      return;
+    }
+    try {
+      final list = jsonDecode(raw) as List;
+      _books = list.map((e) => Book.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      _books = [...seedBooks];
+      _persist();
+    }
+  }
+
+  Future<void> _persist() async {
+    await _prefs.setString(_key, jsonEncode(_books.map((b) => b.toJson()).toList()));
+  }
+
+  @override
+  Future<List<Book>> getAllRaw() async => _books;
 
   @override
   Future<PageResult<Book>> find(BookQuery q) async {
-    await Future.delayed(const Duration(milliseconds: 200));
+    await Future.delayed(const Duration(milliseconds: 150));
     var rows = _books.where((b) => q.includeDeleted || !b.isDeleted).toList();
 
     if (q.search.trim().isNotEmpty) {
@@ -47,15 +77,20 @@ class InMemoryBookRepository implements BookRepository {
 
   @override
   Future<Book?> findById(int id) async {
-    await Future.delayed(const Duration(milliseconds: 100));
     final index = _books.indexWhere((b) => b.id == id);
     return index == -1 ? null : _books[index];
   }
 
   @override
   Future<Book> create(Book book) async {
+    final exists = _books.any((b) => b.isbn.trim() == book.isbn.trim() && !b.isDeleted);
+    if (exists) {
+      throw StateError('Книга с таким ISBN уже существует');
+    }
+
+    final id = _books.isEmpty ? 1 : (_books.map((e) => e.id).reduce((a, b) => a > b ? a : b) + 1);
     final created = Book(
-      id: _nextId++,
+      id: id,
       title: book.title,
       isbn: book.isbn,
       year: book.year,
@@ -67,14 +102,24 @@ class InMemoryBookRepository implements BookRepository {
       copiesAvailable: book.copiesAvailable,
     );
     _books.add(created);
+    await _persist();
     return created;
   }
 
   @override
   Future<Book> update(Book book) async {
+    final exists = _books.any((b) =>
+        b.id != book.id &&
+        b.isbn.trim() == book.isbn.trim() &&
+        !b.isDeleted);
+    if (exists) {
+      throw StateError('Книга с таким ISBN уже существует');
+    }
+
     final i = _books.indexWhere((b) => b.id == book.id);
     if (i == -1) throw StateError('Книга ${book.id} не найдена');
     _books[i] = book;
+    await _persist();
     return _books[i];
   }
 
@@ -83,11 +128,13 @@ class InMemoryBookRepository implements BookRepository {
     final i = _books.indexWhere((b) => b.id == id);
     if (i == -1) throw StateError('Книга $id не найдена');
     _books[i] = _books[i].copyWith(deletedAt: DateTime.now());
+    await _persist();
   }
 
   @override
   Future<void> hardDelete(int id) async {
     _books.removeWhere((b) => b.id == id);
+    await _persist();
   }
 
   @override
@@ -95,6 +142,7 @@ class InMemoryBookRepository implements BookRepository {
     final i = _books.indexWhere((b) => b.id == id);
     if (i == -1) throw StateError('Книга $id не найдена');
     _books[i] = _books[i].copyWith(clearDeletedAt: true);
+    await _persist();
   }
 
   @override
@@ -107,6 +155,7 @@ class InMemoryBookRepository implements BookRepository {
         count++;
       }
     }
+    await _persist();
     return count;
   }
 }

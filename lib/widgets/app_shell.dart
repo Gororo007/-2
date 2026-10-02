@@ -10,11 +10,17 @@ class AppShell extends StatelessWidget {
   static const _destinations = [
     (icon: Icons.menu_book, label: 'Книги', path: '/books'),
     (icon: Icons.person, label: 'Авторы', path: '/authors'),
+    (icon: Icons.category, label: 'Жанры', path: '/genres'),
+    (icon: Icons.business, label: 'Издательства', path: '/publishers'),
+    (icon: Icons.badge, label: 'Читатели', path: '/readers'),
   ];
 
   int _calculateSelectedIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
     if (location.startsWith('/authors')) return 1;
+    if (location.startsWith('/genres')) return 2;
+    if (location.startsWith('/publishers')) return 3;
+    if (location.startsWith('/readers')) return 4;
     return 0;
   }
 

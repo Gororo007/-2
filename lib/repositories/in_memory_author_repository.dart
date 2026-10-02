@@ -1,16 +1,43 @@
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/author.dart';
 import '../models/author_query.dart';
 import '../models/page_result.dart';
 import 'author_repository.dart';
 import 'seed_data.dart';
 
-class InMemoryAuthorRepository implements AuthorRepository {
-  final List<Author> _authors = [...seedAuthors];
-  int _nextId = seedAuthors.length + 1;
+class PersistentAuthorRepository implements AuthorRepository {
+  static const _key = 'authors_v1';
+  final SharedPreferences _prefs;
+  List<Author> _authors = [];
+
+  PersistentAuthorRepository(this._prefs) {
+    _restore();
+  }
+
+  void _restore() {
+    final raw = _prefs.getString(_key);
+    if (raw == null) {
+      _authors = [...seedAuthors];
+      _persist();
+      return;
+    }
+    try {
+      final list = jsonDecode(raw) as List;
+      _authors = list.map((e) => Author.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      _authors = [...seedAuthors];
+      _persist();
+    }
+  }
+
+  Future<void> _persist() async {
+    await _prefs.setString(_key, jsonEncode(_authors.map((a) => a.toJson()).toList()));
+  }
 
   @override
   Future<PageResult<Author>> find(AuthorQuery q) async {
-    await Future.delayed(const Duration(milliseconds: 200));
+    await Future.delayed(const Duration(milliseconds: 150));
     var rows = _authors.where((a) => q.includeDeleted || !a.isDeleted).toList();
 
     if (q.search.trim().isNotEmpty) {
@@ -50,14 +77,16 @@ class InMemoryAuthorRepository implements AuthorRepository {
 
   @override
   Future<Author> create(Author author) async {
+    final id = _authors.isEmpty ? 1 : (_authors.map((e) => e.id).reduce((a, b) => a > b ? a : b) + 1);
     final created = Author(
-      id: _nextId++,
+      id: id,
       firstName: author.firstName,
       lastName: author.lastName,
       country: author.country,
       birthYear: author.birthYear,
     );
     _authors.add(created);
+    await _persist();
     return created;
   }
 
@@ -66,26 +95,32 @@ class InMemoryAuthorRepository implements AuthorRepository {
     final i = _authors.indexWhere((a) => a.id == author.id);
     if (i == -1) throw StateError('Автор ${author.id} не найден');
     _authors[i] = author;
+    await _persist();
     return _authors[i];
   }
 
   @override
   Future<void> softDelete(int id) async {
     final i = _authors.indexWhere((a) => a.id == id);
-    if (i == -1) throw StateError('Автор $id не найден');
-    _authors[i] = _authors[i].copyWith(deletedAt: DateTime.now());
+    if (i != -1) {
+      _authors[i] = _authors[i].copyWith(deletedAt: DateTime.now());
+      await _persist();
+    }
   }
 
   @override
   Future<void> hardDelete(int id) async {
     _authors.removeWhere((a) => a.id == id);
+    await _persist();
   }
 
   @override
   Future<void> restore(int id) async {
     final i = _authors.indexWhere((a) => a.id == id);
-    if (i == -1) throw StateError('Автор $id не найден');
-    _authors[i] = _authors[i].copyWith(clearDeletedAt: true);
+    if (i != -1) {
+      _authors[i] = _authors[i].copyWith(clearDeletedAt: true);
+      await _persist();
+    }
   }
 
   @override
@@ -98,6 +133,7 @@ class InMemoryAuthorRepository implements AuthorRepository {
         count++;
       }
     }
+    await _persist();
     return count;
   }
 }

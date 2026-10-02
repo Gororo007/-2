@@ -125,6 +125,12 @@ class _BookListScreenState extends State<BookListScreen> {
       appBar: AppBar(
         title: const Text('Каталог книг'),
         actions: [
+          FilledButton.icon(
+            onPressed: () => context.go('/books/new'),
+            icon: const Icon(Icons.add),
+            label: const Text('Создать книгу'),
+          ),
+          const SizedBox(width: 12),
           Row(
             children: [
               const Text('Удалённые'),
@@ -188,7 +194,7 @@ class _BookListScreenState extends State<BookListScreen> {
                   width: 170,
                   child: DropdownButtonFormField<int?>(
                     decoration: const InputDecoration(labelText: 'Жанр'),
-                    value: notifier.query.genreId,
+                    initialValue: notifier.query.genreId,
                     items: const [
                       DropdownMenuItem(value: null, child: Text('Все жанры')),
                       DropdownMenuItem(value: 1, child: Text('Классика')),
@@ -202,7 +208,7 @@ class _BookListScreenState extends State<BookListScreen> {
                   width: 170,
                   child: DropdownButtonFormField<int?>(
                     decoration: const InputDecoration(labelText: 'Издатель'),
-                    value: notifier.query.publisherId,
+                    initialValue: notifier.query.publisherId,
                     items: const [
                       DropdownMenuItem(value: null, child: Text('Все издатели')),
                       DropdownMenuItem(value: 1, child: Text('Азбука')),
@@ -277,9 +283,9 @@ class _BookListScreenState extends State<BookListScreen> {
       ],
       actions: (b) => [
         IconButton(
-          icon: const Icon(Icons.chevron_right),
-          tooltip: 'Карточка книги',
-          onPressed: () => context.go('/books/${b.id}'),
+          icon: const Icon(Icons.edit),
+          tooltip: 'Редактировать',
+          onPressed: () => context.go('/books/${b.id}/edit'),
         ),
         if (b.isDeleted)
           IconButton(
@@ -314,9 +320,12 @@ class _BookListScreenState extends State<BookListScreen> {
             ),
             title: Text(b.title, style: TextStyle(decoration: b.isDeleted ? TextDecoration.lineThrough : null)),
             subtitle: Text('Год: ${b.year} | ISBN: ${b.isbn}'),
-            trailing: IconButton(
-              icon: const Icon(Icons.chevron_right),
-              onPressed: () => context.go('/books/${b.id}'),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(icon: const Icon(Icons.edit), onPressed: () => context.go('/books/${b.id}/edit')),
+                IconButton(icon: const Icon(Icons.chevron_right), onPressed: () => context.go('/books/${b.id}')),
+              ],
             ),
           ),
         );
