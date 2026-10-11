@@ -1,7 +1,8 @@
 typedef Validator = String? Function(String?);
 
 class V {
-  static Validator required([String message = 'Поле обязательно для заполнения']) {
+  static Validator required(
+      [String message = 'Поле обязательно для заполнения']) {
     return (value) => (value == null || value.trim().isEmpty) ? message : null;
   }
 

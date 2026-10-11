@@ -22,7 +22,8 @@ class PersistentGenreRepository implements GenreRepository {
     }
     try {
       final list = jsonDecode(raw) as List;
-      _genres = list.map((e) => Genre.fromJson(e as Map<String, dynamic>)).toList();
+      _genres =
+          list.map((e) => Genre.fromJson(e as Map<String, dynamic>)).toList();
     } catch (_) {
       _genres = [...seedGenres];
       _persist();
@@ -30,7 +31,8 @@ class PersistentGenreRepository implements GenreRepository {
   }
 
   Future<void> _persist() async {
-    await _prefs.setString(_key, jsonEncode(_genres.map((g) => g.toJson()).toList()));
+    await _prefs.setString(
+        _key, jsonEncode(_genres.map((g) => g.toJson()).toList()));
   }
 
   @override
@@ -46,8 +48,11 @@ class PersistentGenreRepository implements GenreRepository {
 
   @override
   Future<Genre> create(Genre genre) async {
-    final id = _genres.isEmpty ? 1 : (_genres.map((e) => e.id).reduce((a, b) => a > b ? a : b) + 1);
-    final created = Genre(id: id, name: genre.name, description: genre.description);
+    final id = _genres.isEmpty
+        ? 1
+        : (_genres.map((e) => e.id).reduce((a, b) => a > b ? a : b) + 1);
+    final created =
+        Genre(id: id, name: genre.name, description: genre.description);
     _genres.add(created);
     await _persist();
     return created;

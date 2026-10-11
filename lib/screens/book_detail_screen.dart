@@ -61,7 +61,8 @@ class BookDetailScreen extends StatelessWidget {
                           const SizedBox(height: 8),
                           Text('Количество страниц: ${book.pages}'),
                           const SizedBox(height: 8),
-                          Text('В наличии: ${book.copiesAvailable} из ${book.copiesTotal}'),
+                          Text(
+                              'В наличии: ${book.copiesAvailable} из ${book.copiesTotal}'),
                         ],
                       ),
                     ),

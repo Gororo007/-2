@@ -49,9 +49,11 @@ class AuthorDetailScreen extends StatelessWidget {
                 children: [
                   Text(author.fullName, style: theme.textTheme.headlineMedium),
                   const SizedBox(height: 8),
-                  Text('Страна: ${author.country}', style: theme.textTheme.bodyLarge),
+                  Text('Страна: ${author.country}',
+                      style: theme.textTheme.bodyLarge),
                   const SizedBox(height: 4),
-                  Text('Год рождения: ${author.birthYear}', style: theme.textTheme.bodyMedium),
+                  Text('Год рождения: ${author.birthYear}',
+                      style: theme.textTheme.bodyMedium),
                 ],
               ),
             ),

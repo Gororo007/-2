@@ -57,10 +57,15 @@ class _AuthorFormScreenState extends State<AuthorFormScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Несохранённые изменения'),
-        content: const Text('Вы уверены, что хотите уйти? Все несохранённые данные будут потеряны.'),
+        content: const Text(
+            'Вы уверены, что хотите уйти? Все несохранённые данные будут потеряны.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Остаться')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Выйти')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Остаться')),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Выйти')),
         ],
       ),
     );
@@ -101,7 +106,8 @@ class _AuthorFormScreenState extends State<AuthorFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (_isLoading)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
 
     return PopScope(
       canPop: !_isDirty,
@@ -115,7 +121,8 @@ class _AuthorFormScreenState extends State<AuthorFormScreen> {
           leading: BackButton(onPressed: () async {
             if (await _onWillPop() && context.mounted) context.go('/authors');
           }),
-          title: Text(widget.isEditing ? 'Редактирование автора' : 'Новый автор'),
+          title:
+              Text(widget.isEditing ? 'Редактирование автора' : 'Новый автор'),
         ),
         body: Center(
           child: ConstrainedBox(
@@ -129,31 +136,40 @@ class _AuthorFormScreenState extends State<AuthorFormScreen> {
                   children: [
                     TextFormField(
                       controller: _lastNameController,
-                      decoration: const InputDecoration(labelText: 'Фамилия *', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                          labelText: 'Фамилия *', border: OutlineInputBorder()),
                       onChanged: (_) => _markDirty(),
-                      validator: V.combine([V.required(), V.length(min: 2, max: 100)]),
+                      validator:
+                          V.combine([V.required(), V.length(min: 2, max: 100)]),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _firstNameController,
-                      decoration: const InputDecoration(labelText: 'Имя *', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                          labelText: 'Имя *', border: OutlineInputBorder()),
                       onChanged: (_) => _markDirty(),
-                      validator: V.combine([V.required(), V.length(min: 2, max: 100)]),
+                      validator:
+                          V.combine([V.required(), V.length(min: 2, max: 100)]),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _countryController,
-                      decoration: const InputDecoration(labelText: 'Страна *', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                          labelText: 'Страна *', border: OutlineInputBorder()),
                       onChanged: (_) => _markDirty(),
-                      validator: V.combine([V.required(), V.length(min: 2, max: 100)]),
+                      validator:
+                          V.combine([V.required(), V.length(min: 2, max: 100)]),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _birthYearController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Год рождения *', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                          labelText: 'Год рождения *',
+                          border: OutlineInputBorder()),
                       onChanged: (_) => _markDirty(),
-                      validator: V.combine([V.required(), V.integer(min: 0, max: 2100)]),
+                      validator: V.combine(
+                          [V.required(), V.integer(min: 0, max: 2100)]),
                     ),
                     const SizedBox(height: 24),
                     SizedBox(
@@ -161,7 +177,9 @@ class _AuthorFormScreenState extends State<AuthorFormScreen> {
                       height: 48,
                       child: FilledButton(
                         onPressed: _submit,
-                        child: Text(widget.isEditing ? 'Сохранить изменения' : 'Создать автора'),
+                        child: Text(widget.isEditing
+                            ? 'Сохранить изменения'
+                            : 'Создать автора'),
                       ),
                     ),
                   ],

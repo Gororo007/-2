@@ -54,9 +54,10 @@ class EntityTable<T> extends StatelessWidget {
               constraints: BoxConstraints(minWidth: constraints.maxWidth),
               child: DataTable(
                 sortAscending: sortAscending,
-                sortColumnIndex: (sortColumnIndex != null && sortColumnIndex >= 0)
-                    ? sortColumnIndex
-                    : null,
+                sortColumnIndex:
+                    (sortColumnIndex != null && sortColumnIndex >= 0)
+                        ? sortColumnIndex
+                        : null,
                 showCheckboxColumn: onToggleSelect != null,
                 columns: [
                   for (final col in columns)
@@ -67,7 +68,8 @@ class EntityTable<T> extends StatelessWidget {
                           ? (_, __) => onSort!(col.sortField!)
                           : null,
                     ),
-                  if (actions != null) const DataColumn(label: Text('Действия')),
+                  if (actions != null)
+                    const DataColumn(label: Text('Действия')),
                 ],
                 rows: [
                   for (final item in items)

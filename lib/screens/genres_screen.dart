@@ -45,7 +45,8 @@ class _GenresScreenState extends State<GenresScreen> {
             children: [
               TextFormField(
                 controller: nameCtrl,
-                decoration: const InputDecoration(labelText: 'Название жанра *'),
+                decoration:
+                    const InputDecoration(labelText: 'Название жанра *'),
                 validator: V.combine([V.required(), V.length(min: 2, max: 50)]),
               ),
               const SizedBox(height: 12),
@@ -57,7 +58,9 @@ class _GenresScreenState extends State<GenresScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Отмена')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Отмена')),
           FilledButton(
             onPressed: () {
               if (formKey.currentState!.validate()) Navigator.pop(ctx, true);
@@ -71,9 +74,13 @@ class _GenresScreenState extends State<GenresScreen> {
     if (res == true) {
       final repo = context.read<GenreRepository>();
       if (genre == null) {
-        await repo.create(Genre(id: 0, name: nameCtrl.text.trim(), description: descCtrl.text.trim()));
+        await repo.create(Genre(
+            id: 0,
+            name: nameCtrl.text.trim(),
+            description: descCtrl.text.trim()));
       } else {
-        await repo.update(genre.copyWith(name: nameCtrl.text.trim(), description: descCtrl.text.trim()));
+        await repo.update(genre.copyWith(
+            name: nameCtrl.text.trim(), description: descCtrl.text.trim()));
       }
       _load();
     }
@@ -103,16 +110,23 @@ class _GenresScreenState extends State<GenresScreen> {
                 final g = _genres[idx];
                 return ListTile(
                   leading: const CircleAvatar(child: Icon(Icons.category)),
-                  title: Text(g.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text(g.description.isNotEmpty ? g.description : 'Без описания'),
+                  title: Text(g.name,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text(g.description.isNotEmpty
+                      ? g.description
+                      : 'Без описания'),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      IconButton(icon: const Icon(Icons.edit), onPressed: () => _editGenre(g)),
+                      IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () => _editGenre(g)),
                       IconButton(
                         icon: const Icon(Icons.delete_outline),
                         onPressed: () async {
-                          await context.read<GenreRepository>().softDelete(g.id);
+                          await context
+                              .read<GenreRepository>()
+                              .softDelete(g.id);
                           _load();
                         },
                       ),

@@ -18,6 +18,28 @@ class Author {
   bool get isDeleted => deletedAt != null;
   String get fullName => '$firstName $lastName';
 
+  factory Author.fromJson(Map<String, dynamic> json) {
+    return Author(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      firstName: json['firstName'] as String? ?? '',
+      lastName: json['lastName'] as String? ?? '',
+      country: json['country'] as String? ?? '',
+      birthYear: (json['birthYear'] as num?)?.toInt() ?? 0,
+      deletedAt: json['deletedAt'] != null
+          ? DateTime.tryParse(json['deletedAt'].toString())
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'firstName': firstName,
+        'lastName': lastName,
+        'country': country,
+        'birthYear': birthYear,
+        if (deletedAt != null) 'deletedAt': deletedAt!.toIso8601String(),
+      };
+
   Author copyWith({
     String? firstName,
     String? lastName,
@@ -35,24 +57,4 @@ class Author {
       deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),
     );
   }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'firstName': firstName,
-        'lastName': lastName,
-        'country': country,
-        'birthYear': birthYear,
-        'deletedAt': deletedAt?.toIso8601String(),
-      };
-
-  factory Author.fromJson(Map<String, dynamic> json) => Author(
-        id: json['id'] as int? ?? 0,
-        firstName: json['firstName'] as String? ?? '',
-        lastName: json['lastName'] as String? ?? '',
-        country: json['country'] as String? ?? '',
-        birthYear: json['birthYear'] as int? ?? 0,
-        deletedAt: json['deletedAt'] == null
-            ? null
-            : DateTime.tryParse(json['deletedAt'] as String),
-      );
 }

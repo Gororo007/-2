@@ -47,7 +47,8 @@ class _ReaderFormScreenState extends State<ReaderFormScreen> {
         _cardId = reader.card.id;
       }
     } else {
-      _cardNumberController.text = 'CARD-${DateTime.now().millisecondsSinceEpoch % 10000}';
+      _cardNumberController.text =
+          'CARD-${DateTime.now().millisecondsSinceEpoch % 10000}';
     }
     setState(() => _isLoading = false);
   }
@@ -62,10 +63,15 @@ class _ReaderFormScreenState extends State<ReaderFormScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Несохранённые изменения'),
-        content: const Text('Вы уверены, что хотите уйти? Все несохранённые данные будут потеряны.'),
+        content: const Text(
+            'Вы уверены, что хотите уйти? Все несохранённые данные будут потеряны.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Остаться')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Выйти')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Остаться')),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Выйти')),
         ],
       ),
     );
@@ -101,7 +107,8 @@ class _ReaderFormScreenState extends State<ReaderFormScreen> {
       _isDirty = false;
       if (mounted) context.go('/readers');
     } catch (e) {
-      setState(() => _serverEmailError = e.toString().replaceAll('StateError: ', ''));
+      setState(() =>
+          _serverEmailError = e.toString().replaceAll('StateError: ', ''));
       _formKey.currentState!.validate();
     }
   }
@@ -117,7 +124,8 @@ class _ReaderFormScreenState extends State<ReaderFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (_isLoading)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
 
     return PopScope(
       canPop: !_isDirty,
@@ -131,7 +139,8 @@ class _ReaderFormScreenState extends State<ReaderFormScreen> {
           leading: BackButton(onPressed: () async {
             if (await _onWillPop() && context.mounted) context.go('/readers');
           }),
-          title: Text(widget.isEditing ? 'Редактирование читателя' : 'Новый читатель'),
+          title: Text(
+              widget.isEditing ? 'Редактирование читателя' : 'Новый читатель'),
         ),
         body: Center(
           child: ConstrainedBox(
@@ -146,17 +155,22 @@ class _ReaderFormScreenState extends State<ReaderFormScreen> {
                   children: [
                     TextFormField(
                       controller: _nameController,
-                      decoration: const InputDecoration(labelText: 'ФИО читателя *', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                          labelText: 'ФИО читателя *',
+                          border: OutlineInputBorder()),
                       onChanged: (_) => _markDirty(),
-                      validator: V.combine([V.required(), V.length(min: 3, max: 100)]),
+                      validator:
+                          V.combine([V.required(), V.length(min: 3, max: 100)]),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _emailController,
-                      decoration: const InputDecoration(labelText: 'Email *', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                          labelText: 'Email *', border: OutlineInputBorder()),
                       onChanged: (_) {
                         _markDirty();
-                        if (_serverEmailError != null) setState(() => _serverEmailError = null);
+                        if (_serverEmailError != null)
+                          setState(() => _serverEmailError = null);
                       },
                       validator: (val) {
                         final local = V.combine([V.required(), V.email()])(val);
@@ -167,22 +181,28 @@ class _ReaderFormScreenState extends State<ReaderFormScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _phoneController,
-                      decoration: const InputDecoration(labelText: 'Телефон *', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                          labelText: 'Телефон *', border: OutlineInputBorder()),
                       onChanged: (_) => _markDirty(),
-                      validator: V.combine([V.required(), V.length(min: 6, max: 20)]),
+                      validator:
+                          V.combine([V.required(), V.length(min: 6, max: 20)]),
                     ),
                     const SizedBox(height: 24),
                     // Связь один к одному: вложенный читательский билет
-                    Text('Читательский билет (связь один к одному)', style: Theme.of(context).textTheme.titleMedium),
+                    Text('Читательский билет (связь один к одному)',
+                        style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 8),
                     Card(
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: TextFormField(
                           controller: _cardNumberController,
-                          decoration: const InputDecoration(labelText: 'Номер билета *', border: OutlineInputBorder()),
+                          decoration: const InputDecoration(
+                              labelText: 'Номер билета *',
+                              border: OutlineInputBorder()),
                           onChanged: (_) => _markDirty(),
-                          validator: V.combine([V.required(), V.length(min: 4, max: 30)]),
+                          validator: V.combine(
+                              [V.required(), V.length(min: 4, max: 30)]),
                         ),
                       ),
                     ),
@@ -192,7 +212,9 @@ class _ReaderFormScreenState extends State<ReaderFormScreen> {
                       height: 48,
                       child: FilledButton(
                         onPressed: _submit,
-                        child: Text(widget.isEditing ? 'Сохранить изменения' : 'Создать читателя'),
+                        child: Text(widget.isEditing
+                            ? 'Сохранить изменения'
+                            : 'Создать читателя'),
                       ),
                     ),
                   ],

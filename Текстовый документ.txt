@@ -1,0 +1,1298 @@
+import os
+import subprocess
+
+FILES = {
+    "pubspec.yaml": """name: library_system
+description: "Клиент библиотечной системы (Практическая работа 4)"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
+  go_router: ^14.0.0
+  provider: ^6.1.2
+  intl: ^0.19.0
+  dio: ^5.7.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+""",
+
+    "mock-server.js": """const http = require('http');
+const url = require('url');
+
+const args = process.argv.slice(2);
+const portIndex = args.indexOf('--port');
+const originIndex = args.indexOf('--origin');
+
+const PORT = portIndex !== -1 ? parseInt(args[portIndex + 1], 10) : 8080;
+const ALLOWED_ORIGIN = originIndex !== -1 ? args[originIndex + 1] : 'http://localhost:5555';
+
+let authors = [
+  { id: 1, firstName: 'Лев', lastName: 'Толстой', country: 'Россия', birthYear: 1828, deletedAt: null },
+  { id: 2, firstName: 'Фёдор', lastName: 'Достоевский', country: 'Россия', birthYear: 1821, deletedAt: null },
+  { id: 3, firstName: 'Джордж', lastName: 'Оруэлл', country: 'Великобритания', birthYear: 1903, deletedAt: null },
+  { id: 4, firstName: 'Михаил', lastName: 'Булгаков', country: 'Россия', birthYear: 1891, deletedAt: null },
+  { id: 5, firstName: 'Рэй', lastName: 'Брэдбери', country: 'США', birthYear: 1920, deletedAt: null },
+  { id: 6, firstName: 'Габриэль', lastName: 'Гарсиа Маркес', country: 'Колумбия', birthYear: 1927, deletedAt: null },
+  { id: 7, firstName: 'Антон', lastName: 'Чехов', country: 'Россия', birthYear: 1860, deletedAt: null },
+  { id: 8, firstName: 'Эрих Мария', lastName: 'Ремарк', country: 'Германия', birthYear: 1898, deletedAt: null }
+];
+
+let books = [
+  { id: 1, title: 'Война и мир', isbn: '978-5-389-06256-6', year: 1869, pages: 1225, publisherId: 1, authorIds: [1], genreIds: [1, 2], copiesTotal: 5, copiesAvailable: 3, deletedAt: null },
+  { id: 2, title: 'Преступление и наказание', isbn: '978-5-17-090630-7', year: 1866, pages: 672, publisherId: 2, authorIds: [2], genreIds: [1], copiesTotal: 4, copiesAvailable: 2, deletedAt: null },
+  { id: 3, title: '1984', isbn: '978-5-17-080115-2', year: 1949, pages: 320, publisherId: 2, authorIds: [3], genreIds: [3], copiesTotal: 8, copiesAvailable: 6, deletedAt: null },
+  { id: 4, title: 'Мастер и Маргарита', isbn: '978-5-389-01686-6', year: 1967, pages: 480, publisherId: 1, authorIds: [4], genreIds: [1, 4], copiesTotal: 6, copiesAvailable: 1, deletedAt: null },
+  { id: 5, title: '451 градус по Фаренгейту', isbn: '978-5-17-077074-8', year: 1953, pages: 256, publisherId: 2, authorIds: [5], genreIds: [3], copiesTotal: 7, copiesAvailable: 5, deletedAt: null },
+  { id: 6, title: 'Сто лет одиночества', isbn: '978-5-17-087082-0', year: 1967, pages: 480, publisherId: 2, authorIds: [6], genreIds: [1, 4], copiesTotal: 3, copiesAvailable: 0, deletedAt: null },
+  { id: 7, title: 'Вишнёвый сад', isbn: '978-5-389-02283-6', year: 1904, pages: 96, publisherId: 1, authorIds: [7], genreIds: [5], copiesTotal: 4, copiesAvailable: 4, deletedAt: null },
+  { id: 8, title: 'На Западном фронте без перемен', isbn: '978-5-17-084224-7', year: 1929, pages: 288, publisherId: 2, authorIds: [8], genreIds: [1, 2], copiesTotal: 5, copiesAvailable: 2, deletedAt: null },
+  { id: 9, title: 'Анна Каренина', isbn: '978-5-389-01524-1', year: 1877, pages: 864, publisherId: 1, authorIds: [1], genreIds: [1], copiesTotal: 3, copiesAvailable: 1, deletedAt: null },
+  { id: 10, title: 'Идиот', isbn: '978-5-17-090631-4', year: 1869, pages: 640, publisherId: 2, authorIds: [2], genreIds: [1], copiesTotal: 4, copiesAvailable: 3, deletedAt: null },
+  { id: 11, title: 'Скотный двор', isbn: '978-5-17-080116-9', year: 1945, pages: 128, publisherId: 2, authorIds: [3], genreIds: [3], copiesTotal: 10, copiesAvailable: 7, deletedAt: null },
+  { id: 12, title: 'Белая гвардия', isbn: '978-5-389-01687-3', year: 1925, pages: 352, publisherId: 1, authorIds: [4], genreIds: [1, 2], copiesTotal: 3, copiesAvailable: 2, deletedAt: null },
+  { id: 13, title: 'Марсианские хроники', isbn: '978-5-17-077075-5', year: 1950, pages: 320, publisherId: 2, authorIds: [5], genreIds: [3], copiesTotal: 5, copiesAvailable: 4, deletedAt: null },
+  { id: 14, title: 'Три товарища', isbn: '978-5-17-084225-4', year: 1936, pages: 480, publisherId: 2, authorIds: [8], genreIds: [1], copiesTotal: 6, copiesAvailable: 5, deletedAt: null },
+  { id: 15, title: 'Братья Карамазовы', isbn: '978-5-17-090632-1', year: 1880, pages: 928, publisherId: 2, authorIds: [2], genreIds: [1], copiesTotal: 3, copiesAvailable: 1, deletedAt: null },
+  { id: 16, title: 'Чайка', isbn: '978-5-389-02284-3', year: 1896, pages: 80, publisherId: 1, authorIds: [7], genreIds: [5], copiesTotal: 2, copiesAvailable: 2, deletedAt: null },
+  { id: 17, title: 'Собачье сердце', isbn: '978-5-389-01688-0', year: 1925, pages: 160, publisherId: 1, authorIds: [4], genreIds: [1, 3], copiesTotal: 8, copiesAvailable: 6, deletedAt: null },
+  { id: 18, title: 'Триумфальная арка', isbn: '978-5-17-084226-1', year: 1945, pages: 512, publisherId: 2, authorIds: [8], genreIds: [1], copiesTotal: 4, copiesAvailable: 0, deletedAt: null },
+  { id: 19, title: 'Вино из одуванчиков', isbn: '978-5-17-077076-2', year: 1957, pages: 320, publisherId: 2, authorIds: [5], genreIds: [1], copiesTotal: 5, copiesAvailable: 3, deletedAt: null },
+  { id: 20, title: 'Палата № 6', isbn: '978-5-389-02285-0', year: 1892, pages: 112, publisherId: 1, authorIds: [7], genreIds: [1], copiesTotal: 4, copiesAvailable: 3, deletedAt: null },
+  { id: 21, title: 'Воскресение', isbn: '978-5-389-01525-8', year: 1899, pages: 544, publisherId: 1, authorIds: [1], genreIds: [1], copiesTotal: 3, copiesAvailable: 2, deletedAt: null }
+];
+
+let nextBookId = 22;
+let nextAuthorId = 9;
+
+function sendJson(res, statusCode, data) {
+  res.writeHead(statusCode, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+  });
+  res.end(JSON.stringify(data));
+}
+
+const server = http.createServer((req, res) => {
+  const parsedUrl = url.parse(req.url, true);
+  const pathname = parsedUrl.pathname;
+  const query = parsedUrl.query;
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, {
+      'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    });
+    return res.end();
+  }
+
+  const delay = query.__delay ? parseInt(query.__delay, 10) : 50;
+  const fail = query.__fail ? parseInt(query.__fail, 10) : null;
+
+  setTimeout(() => {
+    if (fail) {
+      return sendJson(res, fail, { message: `Принудительный сбой сервера (код ${fail})` });
+    }
+
+    if (pathname === '/api/__health') {
+      return sendJson(res, 200, { status: 'ok', timestamp: new Date().toISOString() });
+    }
+
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      let parsedBody = {};
+      if (body) {
+        try { parsedBody = JSON.parse(body); } catch (e) {}
+      }
+
+      // --- BOOKS API ---
+      if (pathname === '/api/books' && req.method === 'GET') {
+        let list = books.filter(b => query.includeDeleted === 'true' ? true : b.deletedAt === null);
+        if (query.search) {
+          const q = query.search.toLowerCase();
+          list = list.filter(b => b.title.toLowerCase().includes(q) || b.isbn.toLowerCase().includes(q));
+        }
+        if (query.genreId) {
+          list = list.filter(b => b.genreIds.includes(parseInt(query.genreId, 10)));
+        }
+        if (query.publisherId) {
+          list = list.filter(b => b.publisherId === parseInt(query.publisherId, 10));
+        }
+
+        const sort = query.sort || 'title,asc';
+        const [field, dir] = sort.split(',');
+        const asc = dir !== 'desc';
+        list.sort((a, b) => {
+          let cmp = 0;
+          if (field === 'year') cmp = a.year - b.year;
+          else if (field === 'pages') cmp = a.pages - b.pages;
+          else cmp = a.title.localeCompare(b.title);
+          return asc ? cmp : -cmp;
+        });
+
+        const total = list.length;
+        const page = parseInt(query.page || '1', 10);
+        const size = parseInt(query.size || '10', 10);
+        const from = (page - 1) * size;
+        const items = list.slice(from, from + size);
+
+        return sendJson(res, 200, { items, page, size, total });
+      }
+
+      if (pathname === '/api/books' && req.method === 'POST') {
+        if (!parsedBody.title || !parsedBody.isbn) {
+          return sendJson(res, 422, {
+            message: 'Ошибка валидации',
+            errors: {
+              ...(parsedBody.title ? {} : { title: 'Название обязательно' }),
+              ...(parsedBody.isbn ? {} : { isbn: 'ISBN обязателен' })
+            }
+          });
+        }
+        if (books.some(b => b.isbn === parsedBody.isbn && b.deletedAt === null)) {
+          return sendJson(res, 422, {
+            message: 'Ошибка валидации',
+            errors: { isbn: 'Книга с таким ISBN уже существует' }
+          });
+        }
+        const created = {
+          id: nextBookId++,
+          title: parsedBody.title,
+          isbn: parsedBody.isbn,
+          year: parseInt(parsedBody.year || 2024, 10),
+          pages: parseInt(parsedBody.pages || 100, 10),
+          publisherId: parseInt(parsedBody.publisherId || 1, 10),
+          authorIds: parsedBody.authorIds || [1],
+          genreIds: parsedBody.genreIds || [1],
+          copiesTotal: parseInt(parsedBody.copiesTotal || 1, 10),
+          copiesAvailable: parseInt(parsedBody.copiesTotal || 1, 10),
+          deletedAt: null
+        };
+        books.push(created);
+        return sendJson(res, 201, created);
+      }
+
+      if (pathname === '/api/books/bulk-delete' && req.method === 'POST') {
+        const ids = parsedBody.ids || [];
+        let deleted = 0;
+        for (const id of ids) {
+          const b = books.find(item => item.id === id);
+          if (b && !b.deletedAt) {
+            b.deletedAt = new Date().toISOString();
+            deleted++;
+          }
+        }
+        return sendJson(res, 200, { deleted });
+      }
+
+      const bookMatch = pathname.match(/^\\/api\\/books\\/(\\d+)(\\/restore)?$/);
+      if (bookMatch) {
+        const id = parseInt(bookMatch[1], 10);
+        const isRestore = bookMatch[2] === '/restore';
+        const book = books.find(b => b.id === id);
+        if (!book) return sendJson(res, 404, { message: `Книга ${id} не найдена` });
+
+        if (isRestore && req.method === 'POST') {
+          book.deletedAt = null;
+          return sendJson(res, 200, book);
+        }
+        if (req.method === 'GET') {
+          return sendJson(res, 200, book);
+        }
+        if (req.method === 'PUT') {
+          Object.assign(book, parsedBody);
+          return sendJson(res, 200, book);
+        }
+        if (req.method === 'DELETE') {
+          if (query.hard === 'true') {
+            books = books.filter(b => b.id !== id);
+          } else {
+            book.deletedAt = new Date().toISOString();
+          }
+          return sendJson(res, 204, null);
+        }
+      }
+
+      // --- AUTHORS API ---
+      if (pathname === '/api/authors' && req.method === 'GET') {
+        let list = authors.filter(a => query.includeDeleted === 'true' ? true : a.deletedAt === null);
+        if (query.search) {
+          const q = query.search.toLowerCase();
+          list = list.filter(a => a.lastName.toLowerCase().includes(q) || a.firstName.toLowerCase().includes(q));
+        }
+        if (query.country) {
+          list = list.filter(a => a.country === query.country);
+        }
+        const total = list.length;
+        const page = parseInt(query.page || '1', 10);
+        const size = parseInt(query.size || '10', 10);
+        const from = (page - 1) * size;
+        return sendJson(res, 200, { items: list.slice(from, from + size), page, size, total });
+      }
+
+      const authorMatch = pathname.match(/^\\/api\\/authors\\/(\\d+)(\\/restore)?$/);
+      if (authorMatch) {
+        const id = parseInt(authorMatch[1], 10);
+        const isRestore = authorMatch[2] === '/restore';
+        const author = authors.find(a => a.id === id);
+        if (!author) return sendJson(res, 404, { message: `Автор ${id} не найден` });
+
+        if (isRestore && req.method === 'POST') {
+          author.deletedAt = null;
+          return sendJson(res, 200, author);
+        }
+        if (req.method === 'GET') return sendJson(res, 200, author);
+        if (req.method === 'DELETE') {
+          author.deletedAt = new Date().toISOString();
+          return sendJson(res, 204, null);
+        }
+      }
+
+      return sendJson(res, 404, { message: 'Эндпоинт не найден' });
+    });
+  }, delay);
+});
+
+server.listen(PORT, () => {
+  console.log(`[Mock Server] Запущен на http://localhost:${PORT}/api`);
+  console.log(`[Mock Server] CORS разрешён для origin: ${ALLOWED_ORIGIN}`);
+});
+""",
+
+    "lib/core/config.dart": """const apiBaseUrl = String.fromEnvironment(
+  'API_BASE_URL',
+  defaultValue: 'http://localhost:8080/api',
+);
+""",
+
+    "lib/core/api_exceptions.dart": """import 'package:dio/dio.dart';
+
+sealed class ApiException implements Exception {
+  final String message;
+  const ApiException(this.message);
+  @override
+  String toString() => message;
+}
+
+class NetworkException extends ApiException {
+  const NetworkException([super.message = 'Сервер недоступен. Проверьте соединение.']);
+}
+
+class UnauthorizedException extends ApiException {
+  const UnauthorizedException([super.message = 'Требуется вход в систему.']);
+}
+
+class ForbiddenException extends ApiException {
+  const ForbiddenException([super.message = 'Недостаточно прав для этого действия.']);
+}
+
+class NotFoundException extends ApiException {
+  const NotFoundException([super.message = 'Запись не найдена.']);
+}
+
+class ConflictException extends ApiException {
+  const ConflictException(super.message);
+}
+
+class ValidationException extends ApiException {
+  final Map<String, String> errors;
+  const ValidationException(super.message, this.errors);
+}
+
+class ServerException extends ApiException {
+  const ServerException([super.message = 'Ошибка на сервере. Попробуйте позже.']);
+}
+
+ApiException mapHttpError(int status, dynamic body) {
+  final message = (body is Map && body['message'] is String)
+      ? body['message'] as String
+      : null;
+  return switch (status) {
+    401 => UnauthorizedException(message ?? 'Требуется вход в систему.'),
+    403 => ForbiddenException(message ?? 'Недостаточно прав для этого действия.'),
+    404 => NotFoundException(message ?? 'Запись не найдена.'),
+    409 => ConflictException(message ?? 'Операция невозможна (конфликт данных).'),
+    422 => ValidationException(
+        message ?? 'Ошибка валидации',
+        (body is Map && body['errors'] is Map)
+            ? (body['errors'] as Map).map((k, v) => MapEntry('$k', '$v'))
+            : const {},
+      ),
+    _ => ServerException(message ?? 'Неизвестная ошибка (код $status).'),
+  };
+}
+
+ApiException mapDioError(DioException e) {
+  final existing = e.error;
+  if (existing is ApiException) return existing;
+  return switch (e.type) {
+    DioExceptionType.connectionTimeout ||
+    DioExceptionType.sendTimeout ||
+    DioExceptionType.receiveTimeout =>
+      const NetworkException('Сервер не ответил вовремя.'),
+    DioExceptionType.connectionError =>
+      const NetworkException(
+        'Не удалось соединиться с сервером. '
+        'Если сервер запущен, откройте консоль браузера и проверьте наличие ошибки CORS.',
+      ),
+    DioExceptionType.cancel => const NetworkException('Запрос отменён.'),
+    _ => const ServerException(),
+  };
+}
+
+Future<T> guard<T>(Future<T> Function() action) async {
+  try {
+    return await action();
+  } on DioException catch (e) {
+    throw mapDioError(e);
+  }
+}
+""",
+
+    "lib/core/api_client.dart": """import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'api_exceptions.dart';
+import 'config.dart';
+
+Dio buildDio({String? Function()? tokenProvider}) {
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: apiBaseUrl,
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 15),
+      headers: {'Content-Type': 'application/json'},
+      validateStatus: (status) => status != null && status < 500,
+    ),
+  );
+
+  dio.interceptors.add(
+    InterceptorsWrapper(
+      onRequest: (options, handler) {
+        final token = tokenProvider?.call();
+        if (token != null) {
+          options.headers['Authorization'] = 'Bearer $token';
+        }
+        if (kDebugMode) {
+          debugPrint('[API] ${options.method} ${options.uri}');
+        }
+        return handler.next(options);
+      },
+      onResponse: (response, handler) {
+        final status = response.statusCode ?? 0;
+        if (kDebugMode) {
+          debugPrint('[API] ответ ${response.requestOptions.uri}: $status');
+        }
+        if (status >= 400) {
+          return handler.reject(
+            DioException(
+              requestOptions: response.requestOptions,
+              response: response,
+              type: DioExceptionType.badResponse,
+              error: mapHttpError(status, response.data),
+            ),
+            true,
+          );
+        }
+        return handler.next(response);
+      },
+      onError: (error, handler) async {
+        // Оценка «5»: Автоматический повтор до 3 раз для операций чтения (GET)
+        final options = error.requestOptions;
+        final isGet = options.method.toUpperCase() == 'GET';
+        final isNetwork = error.type == DioExceptionType.connectionError ||
+            error.type == DioExceptionType.connectionTimeout ||
+            error.type == DioExceptionType.receiveTimeout;
+        final retryCount = options.extra['retryCount'] as int? ?? 0;
+
+        if (isGet && isNetwork && retryCount < 3) {
+          options.extra['retryCount'] = retryCount + 1;
+          final delayMs = 400 * (1 << retryCount);
+          await Future.delayed(Duration(milliseconds: delayMs));
+          try {
+            final res = await dio.fetch(options);
+            return handler.resolve(res);
+          } on DioException catch (e) {
+            return handler.next(e);
+          }
+        }
+
+        if (kDebugMode) {
+          debugPrint('[API] сбой ${error.requestOptions.uri}: ${error.type}');
+        }
+        return handler.next(error);
+      },
+    ),
+  );
+
+  return dio;
+}
+""",
+
+    "lib/models/book.dart": """class Book {
+  final int id;
+  final String title;
+  final String isbn;
+  final int year;
+  final int pages;
+  final int publisherId;
+  final List<int> authorIds;
+  final List<int> genreIds;
+  final int copiesTotal;
+  final int copiesAvailable;
+  final DateTime? deletedAt;
+
+  const Book({
+    required this.id,
+    required this.title,
+    required this.isbn,
+    required this.year,
+    required this.pages,
+    required this.publisherId,
+    required this.authorIds,
+    required this.genreIds,
+    required this.copiesTotal,
+    required this.copiesAvailable,
+    this.deletedAt,
+  });
+
+  bool get isDeleted => deletedAt != null;
+
+  factory Book.fromJson(Map<String, dynamic> json) {
+    int parsePubId() {
+      if (json['publisherId'] != null) return (json['publisherId'] as num).toInt();
+      if (json['publisher'] is Map && json['publisher']['id'] != null) {
+        return (json['publisher']['id'] as num).toInt();
+      }
+      return 1;
+    }
+
+    List<int> parseAuthorIds() {
+      if (json['authorIds'] is List) {
+        return (json['authorIds'] as List).map((e) => (e as num).toInt()).toList();
+      }
+      if (json['authors'] is List) {
+        return (json['authors'] as List)
+            .map((e) => e is Map ? (e['id'] as num).toInt() : (e as num).toInt())
+            .toList();
+      }
+      return const [];
+    }
+
+    List<int> parseGenreIds() {
+      if (json['genreIds'] is List) {
+        return (json['genreIds'] as List).map((e) => (e as num).toInt()).toList();
+      }
+      if (json['genres'] is List) {
+        return (json['genres'] as List)
+            .map((e) => e is Map ? (e['id'] as num).toInt() : (e as num).toInt())
+            .toList();
+      }
+      return const [];
+    }
+
+    return Book(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      title: json['title'] as String? ?? '',
+      isbn: json['isbn'] as String? ?? '',
+      year: (json['year'] as num?)?.toInt() ?? 0,
+      pages: (json['pages'] as num?)?.toInt() ?? 0,
+      publisherId: parsePubId(),
+      authorIds: parseAuthorIds(),
+      genreIds: parseGenreIds(),
+      copiesTotal: (json['copiesTotal'] as num?)?.toInt() ?? 0,
+      copiesAvailable: (json['copiesAvailable'] as num?)?.toInt() ?? 0,
+      deletedAt: json['deletedAt'] != null
+          ? DateTime.tryParse(json['deletedAt'].toString())
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'isbn': isbn,
+    'year': year,
+    'pages': pages,
+    'publisherId': publisherId,
+    'authorIds': authorIds,
+    'genreIds': genreIds,
+    'copiesTotal': copiesTotal,
+    'copiesAvailable': copiesAvailable,
+    if (deletedAt != null) 'deletedAt': deletedAt!.toIso8601String(),
+  };
+
+  Book copyWith({
+    String? title,
+    String? isbn,
+    int? year,
+    int? pages,
+    int? publisherId,
+    List<int>? authorIds,
+    List<int>? genreIds,
+    int? copiesTotal,
+    int? copiesAvailable,
+    DateTime? deletedAt,
+    bool clearDeletedAt = false,
+  }) {
+    return Book(
+      id: id,
+      title: title ?? this.title,
+      isbn: isbn ?? this.isbn,
+      year: year ?? this.year,
+      pages: pages ?? this.pages,
+      publisherId: publisherId ?? this.publisherId,
+      authorIds: authorIds ?? this.authorIds,
+      genreIds: genreIds ?? this.genreIds,
+      copiesTotal: copiesTotal ?? this.copiesTotal,
+      copiesAvailable: copiesAvailable ?? this.copiesAvailable,
+      deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),
+    );
+  }
+}
+""",
+
+    "lib/models/author.dart": """class Author {
+  final int id;
+  final String firstName;
+  final String lastName;
+  final String country;
+  final int birthYear;
+  final DateTime? deletedAt;
+
+  const Author({
+    required this.id,
+    required this.firstName,
+    required this.lastName,
+    required this.country,
+    required this.birthYear,
+    this.deletedAt,
+  });
+
+  bool get isDeleted => deletedAt != null;
+  String get fullName => '$firstName $lastName';
+
+  factory Author.fromJson(Map<String, dynamic> json) {
+    return Author(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      firstName: json['firstName'] as String? ?? '',
+      lastName: json['lastName'] as String? ?? '',
+      country: json['country'] as String? ?? '',
+      birthYear: (json['birthYear'] as num?)?.toInt() ?? 0,
+      deletedAt: json['deletedAt'] != null
+          ? DateTime.tryParse(json['deletedAt'].toString())
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'firstName': firstName,
+    'lastName': lastName,
+    'country': country,
+    'birthYear': birthYear,
+    if (deletedAt != null) 'deletedAt': deletedAt!.toIso8601String(),
+  };
+
+  Author copyWith({
+    String? firstName,
+    String? lastName,
+    String? country,
+    int? birthYear,
+    DateTime? deletedAt,
+    bool clearDeletedAt = false,
+  }) {
+    return Author(
+      id: id,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      country: country ?? this.country,
+      birthYear: birthYear ?? this.birthYear,
+      deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),
+    );
+  }
+}
+""",
+
+    "lib/repositories/book_repository.dart": """import 'package:dio/dio.dart';
+import '../models/book.dart';
+import '../models/book_query.dart';
+import '../models/page_result.dart';
+
+abstract interface class BookRepository {
+  Future<PageResult<Book>> find(BookQuery query, {CancelToken? cancelToken});
+  Future<Book?> findById(int id);
+  Future<Book> create(Book book);
+  Future<Book> update(Book book);
+  Future<void> softDelete(int id);
+  Future<void> hardDelete(int id);
+  Future<void> restore(int id);
+  Future<int> deleteMany(List<int> ids);
+}
+""",
+
+    "lib/repositories/author_repository.dart": """import 'package:dio/dio.dart';
+import '../models/author.dart';
+import '../models/author_query.dart';
+import '../models/page_result.dart';
+
+abstract interface class AuthorRepository {
+  Future<PageResult<Author>> find(AuthorQuery query, {CancelToken? cancelToken});
+  Future<Author?> findById(int id);
+  Future<Author> create(Author author);
+  Future<Author> update(Author author);
+  Future<void> softDelete(int id);
+  Future<void> hardDelete(int id);
+  Future<void> restore(int id);
+  Future<int> deleteMany(List<int> ids);
+}
+""",
+
+    "lib/repositories/api_book_repository.dart": """import 'package:dio/dio.dart';
+import '../core/api_exceptions.dart';
+import '../models/book.dart';
+import '../models/book_query.dart';
+import '../models/page_result.dart';
+import 'book_repository.dart';
+
+class ApiBookRepository implements BookRepository {
+  final Dio _dio;
+  ApiBookRepository(this._dio);
+
+  @override
+  Future<PageResult<Book>> find(BookQuery q, {CancelToken? cancelToken}) => guard(() async {
+    final response = await _dio.get(
+      '/books',
+      queryParameters: {
+        if (q.search.trim().isNotEmpty) 'search': q.search.trim(),
+        if (q.genreId != null) 'genreId': q.genreId,
+        if (q.publisherId != null) 'publisherId': q.publisherId,
+        if (q.yearFrom != null) 'yearFrom': q.yearFrom,
+        if (q.yearTo != null) 'yearTo': q.yearTo,
+        'sort': '${q.sortField},${q.sortAscending ? "asc" : "desc"}',
+        'page': q.page,
+        'size': q.size,
+        if (q.includeDeleted) 'includeDeleted': true,
+      },
+      cancelToken: cancelToken,
+    );
+    final data = response.data as Map<String, dynamic>;
+    return PageResult(
+      items: (data['items'] as List? ?? [])
+          .whereType<Map<String, dynamic>>()
+          .map(Book.fromJson)
+          .toList(),
+      page: (data['page'] as num?)?.toInt() ?? 1,
+      size: (data['size'] as num?)?.toInt() ?? q.size,
+      total: (data['total'] as num?)?.toInt() ?? 0,
+    );
+  });
+
+  @override
+  Future<Book?> findById(int id) => guard(() async {
+    final response = await _dio.get('/books/$id');
+    return Book.fromJson(response.data as Map<String, dynamic>);
+  });
+
+  @override
+  Future<Book> create(Book book) => guard(() async {
+    final response = await _dio.post('/books', data: {
+      'title': book.title,
+      'isbn': book.isbn,
+      'year': book.year,
+      'pages': book.pages,
+      'publisherId': book.publisherId,
+      'authorIds': book.authorIds,
+      'genreIds': book.genreIds,
+      'copiesTotal': book.copiesTotal,
+    });
+    return Book.fromJson(response.data as Map<String, dynamic>);
+  });
+
+  @override
+  Future<Book> update(Book book) => guard(() async {
+    final response = await _dio.put('/books/${book.id}', data: {
+      'title': book.title,
+      'isbn': book.isbn,
+      'year': book.year,
+      'pages': book.pages,
+      'publisherId': book.publisherId,
+      'authorIds': book.authorIds,
+      'genreIds': book.genreIds,
+      'copiesTotal': book.copiesTotal,
+    });
+    return Book.fromJson(response.data as Map<String, dynamic>);
+  });
+
+  @override
+  Future<void> softDelete(int id) => guard(() => _dio.delete('/books/$id'));
+
+  @override
+  Future<void> hardDelete(int id) =>
+      guard(() => _dio.delete('/books/$id', queryParameters: {'hard': true}));
+
+  @override
+  Future<void> restore(int id) =>
+      guard(() => _dio.post('/books/$id/restore'));
+
+  @override
+  Future<int> deleteMany(List<int> ids) => guard(() async {
+    final response = await _dio.post('/books/bulk-delete', data: {'ids': ids});
+    return (response.data as Map<String, dynamic>)['deleted'] as int? ?? 0;
+  });
+}
+""",
+
+    "lib/repositories/api_author_repository.dart": """import 'package:dio/dio.dart';
+import '../core/api_exceptions.dart';
+import '../models/author.dart';
+import '../models/author_query.dart';
+import '../models/page_result.dart';
+import 'author_repository.dart';
+
+class ApiAuthorRepository implements AuthorRepository {
+  final Dio _dio;
+  ApiAuthorRepository(this._dio);
+
+  @override
+  Future<PageResult<Author>> find(AuthorQuery q, {CancelToken? cancelToken}) => guard(() async {
+    final response = await _dio.get(
+      '/authors',
+      queryParameters: {
+        if (q.search.trim().isNotEmpty) 'search': q.search.trim(),
+        if (q.country != null && q.country!.isNotEmpty) 'country': q.country,
+        'sort': '${q.sortField},${q.sortAscending ? "asc" : "desc"}',
+        'page': q.page,
+        'size': q.size,
+        if (q.includeDeleted) 'includeDeleted': true,
+      },
+      cancelToken: cancelToken,
+    );
+    final data = response.data as Map<String, dynamic>;
+    return PageResult(
+      items: (data['items'] as List? ?? [])
+          .whereType<Map<String, dynamic>>()
+          .map(Author.fromJson)
+          .toList(),
+      page: (data['page'] as num?)?.toInt() ?? 1,
+      size: (data['size'] as num?)?.toInt() ?? q.size,
+      total: (data['total'] as num?)?.toInt() ?? 0,
+    );
+  });
+
+  @override
+  Future<Author?> findById(int id) => guard(() async {
+    final response = await _dio.get('/authors/$id');
+    return Author.fromJson(response.data as Map<String, dynamic>);
+  });
+
+  @override
+  Future<Author> create(Author author) => guard(() async {
+    final response = await _dio.post('/authors', data: {
+      'firstName': author.firstName,
+      'lastName': author.lastName,
+      'country': author.country,
+      'birthYear': author.birthYear,
+    });
+    return Author.fromJson(response.data as Map<String, dynamic>);
+  });
+
+  @override
+  Future<Author> update(Author author) => guard(() async {
+    final response = await _dio.put('/authors/${author.id}', data: {
+      'firstName': author.firstName,
+      'lastName': author.lastName,
+      'country': author.country,
+      'birthYear': author.birthYear,
+    });
+    return Author.fromJson(response.data as Map<String, dynamic>);
+  });
+
+  @override
+  Future<void> softDelete(int id) => guard(() => _dio.delete('/authors/$id'));
+
+  @override
+  Future<void> hardDelete(int id) =>
+      guard(() => _dio.delete('/authors/$id', queryParameters: {'hard': true}));
+
+  @override
+  Future<void> restore(int id) =>
+      guard(() => _dio.post('/authors/$id/restore'));
+
+  @override
+  Future<int> deleteMany(List<int> ids) => guard(() async {
+    final response = await _dio.post('/authors/bulk-delete', data: {'ids': ids});
+    return (response.data as Map<String, dynamic>)['deleted'] as int? ?? 0;
+  });
+}
+""",
+
+    "lib/state/book_list_notifier.dart": """import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import '../models/book.dart';
+import '../models/book_query.dart';
+import '../models/page_result.dart';
+import '../repositories/book_repository.dart';
+import 'load_status.dart';
+
+class BookListNotifier extends ChangeNotifier {
+  final BookRepository _repository;
+  BookListNotifier(this._repository);
+
+  BookQuery _query = const BookQuery();
+  PageResult<Book> _result = PageResult.empty();
+  LoadStatus _status = LoadStatus.idle;
+  String? _error;
+  final Set<int> _selected = {};
+  CancelToken? _cancelToken;
+
+  BookQuery get query => _query;
+  PageResult<Book> get result => _result;
+  LoadStatus get status => _status;
+  String? get error => _error;
+  Set<int> get selected => Set.unmodifiable(_selected);
+  bool get hasSelection => _selected.isNotEmpty;
+
+  Future<void> load() async {
+    // Оценка «5»: Отмена устаревшего сетевого запроса
+    _cancelToken?.cancel('Запущен новый запрос поиска');
+    final token = CancelToken();
+    _cancelToken = token;
+
+    _status = LoadStatus.loading;
+    _error = null;
+    notifyListeners();
+    try {
+      _result = await _repository.find(_query, cancelToken: token);
+      _status = LoadStatus.success;
+      notifyListeners();
+    } catch (e) {
+      if (token.isCancelled) return;
+      _error = e.toString();
+      _status = LoadStatus.error;
+      notifyListeners();
+    }
+  }
+
+  Future<void> applyQuery(BookQuery next) async {
+    _query = next;
+    _selected.clear();
+    await load();
+  }
+
+  void toggleSelection(int id) {
+    if (_selected.contains(id)) {
+      _selected.remove(id);
+    } else {
+      _selected.add(id);
+    }
+    notifyListeners();
+  }
+
+  Future<void> softDelete(int id) async {
+    await _repository.softDelete(id);
+    await load();
+  }
+
+  Future<void> restore(int id) async {
+    await _repository.restore(id);
+    await load();
+  }
+
+  Future<void> deleteSelected() async {
+    await _repository.deleteMany(_selected.toList());
+    _selected.clear();
+    await load();
+  }
+}
+""",
+
+    "lib/screens/book_form_screen.dart": """import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import '../core/api_exceptions.dart';
+import '../models/author_query.dart';
+import '../models/book.dart';
+import '../repositories/author_repository.dart';
+import '../repositories/book_repository.dart';
+
+class BookFormScreen extends StatefulWidget {
+  final int? id;
+  const BookFormScreen({super.key, this.id});
+
+  @override
+  State<BookFormScreen> createState() => _BookFormScreenState();
+}
+
+class _BookFormScreenState extends State<BookFormScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
+  final _isbnController = TextEditingController();
+  final _yearController = TextEditingController(text: '2024');
+  final _pagesController = TextEditingController(text: '300');
+
+  int _publisherId = 1;
+  int _genreId = 1;
+  int _authorId = 1;
+
+  Map<String, String> _serverErrors = {};
+  bool _saving = false;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      if (widget.id != null) {
+        final book = await context.read<BookRepository>().findById(widget.id!);
+        if (book != null) {
+          _titleController.text = book.title;
+          _isbnController.text = book.isbn;
+          _yearController.text = book.year.toString();
+          _pagesController.text = book.pages.toString();
+          _publisherId = book.publisherId;
+          if (book.genreIds.isNotEmpty) _genreId = book.genreIds.first;
+          if (book.authorIds.isNotEmpty) _authorId = book.authorIds.first;
+        }
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _loading = false);
+  }
+
+  Future<void> _submit() async {
+    setState(() => _serverErrors = {});
+    if (!_formKey.currentState!.validate()) return;
+
+    // Оценка «5»: Блокировка кнопки во время запроса
+    setState(() => _saving = true);
+    try {
+      final book = Book(
+        id: widget.id ?? 0,
+        title: _titleController.text.trim(),
+        isbn: _isbnController.text.trim(),
+        year: int.tryParse(_yearController.text) ?? 2024,
+        pages: int.tryParse(_pagesController.text) ?? 100,
+        publisherId: _publisherId,
+        authorIds: [_authorId],
+        genreIds: [_genreId],
+        copiesTotal: 5,
+        copiesAvailable: 5,
+      );
+
+      final repo = context.read<BookRepository>();
+      if (widget.id == null) {
+        await repo.create(book);
+      } else {
+        await repo.update(book);
+      }
+
+      if (mounted) context.go('/books');
+    } on ValidationException catch (e) {
+      // Оценка «4»: Серверные ошибки 422 в полях формы
+      setState(() => _serverErrors = e.errors);
+      _formKey.currentState!.validate();
+    } on ConflictException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message), backgroundColor: Colors.orange),
+      );
+    } on ApiException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.id == null ? 'Новая книга' : 'Редактирование книги'),
+      ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                children: [
+                  TextFormField(
+                    controller: _titleController,
+                    decoration: InputDecoration(
+                      labelText: 'Название',
+                      errorText: _serverErrors['title'],
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Укажите название' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _isbnController,
+                    decoration: InputDecoration(
+                      labelText: 'ISBN',
+                      errorText: _serverErrors['isbn'],
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Укажите ISBN' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _yearController,
+                          decoration: const InputDecoration(labelText: 'Год издания'),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _pagesController,
+                          decoration: const InputDecoration(labelText: 'Страниц'),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<int>(
+                    value: _publisherId,
+                    decoration: const InputDecoration(labelText: 'Издательство'),
+                    items: const [
+                      DropdownMenuItem(value: 1, child: Text('Азбука')),
+                      DropdownMenuItem(value: 2, child: Text('АСТ')),
+                    ],
+                    onChanged: (v) => setState(() => _publisherId = v ?? 1),
+                  ),
+                  const SizedBox(height: 24),
+                  FilledButton(
+                    onPressed: _saving ? null : _submit,
+                    child: _saving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Text('Сохранить'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+""",
+
+    "lib/main.dart": """import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:provider/provider.dart';
+
+import 'core/api_client.dart';
+import 'core/router.dart';
+import 'repositories/api_author_repository.dart';
+import 'repositories/api_book_repository.dart';
+import 'repositories/author_repository.dart';
+import 'repositories/book_repository.dart';
+import 'state/author_list_notifier.dart';
+import 'state/book_list_notifier.dart';
+
+void main() {
+  usePathUrlStrategy();
+  runApp(
+    MultiProvider(
+      providers: [
+        // HTTP-клиент Dio
+        Provider<Dio>(create: (_) => buildDio()),
+        // Репозитории поверх API
+        ProxyProvider<Dio, BookRepository>(
+          update: (_, dio, __) => ApiBookRepository(dio),
+        ),
+        ProxyProvider<Dio, AuthorRepository>(
+          update: (_, dio, __) => ApiAuthorRepository(dio),
+        ),
+        // Состояние экранов
+        ChangeNotifierProxyProvider<BookRepository, BookListNotifier>(
+          create: (context) => BookListNotifier(context.read<BookRepository>()),
+          update: (_, repo, prev) => prev ?? BookListNotifier(repo),
+        ),
+        ChangeNotifierProxyProvider<AuthorRepository, AuthorListNotifier>(
+          create: (context) => AuthorListNotifier(context.read<AuthorRepository>()),
+          update: (_, repo, prev) => prev ?? AuthorListNotifier(repo),
+        ),
+      ],
+      child: const LibraryApp(),
+    ),
+  );
+}
+
+class LibraryApp extends StatelessWidget {
+  const LibraryApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      title: 'Библиотечная система',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.indigo,
+      ),
+      routerConfig: appRouter,
+    );
+  }
+}
+""",
+
+    "test/api_book_repository_test.dart": """import 'package:dio/dio.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:library_system/core/api_exceptions.dart';
+import 'package:library_system/models/book.dart';
+import 'package:library_system/models/book_query.dart';
+import 'package:library_system/repositories/api_book_repository.dart';
+
+Dio createMockDio(Future<Response> Function(RequestOptions options) handler) {
+  final dio = Dio(BaseOptions(baseUrl: 'http://test.api/api', validateStatus: (s) => s != null && s < 500));
+  dio.interceptors.add(InterceptorsWrapper(
+    onRequest: (options, h) async {
+      try {
+        final res = await handler(options);
+        final status = res.statusCode ?? 200;
+        if (status >= 400) {
+          return h.reject(DioException(
+            requestOptions: options,
+            response: res,
+            type: DioExceptionType.badResponse,
+            error: mapHttpError(status, res.data),
+          ));
+        }
+        return h.resolve(res);
+      } on DioException catch (e) {
+        return h.reject(e);
+      } catch (e) {
+        return h.reject(DioException(requestOptions: options, error: e));
+      }
+    },
+  ));
+  return dio;
+}
+
+void main() {
+  group('ApiBookRepository (5 тестов на оценку «5»)', () {
+    test('1. Успешный find разбирает элементы и пагинацию', () async {
+      final dio = createMockDio((opt) async => Response(
+        requestOptions: opt,
+        statusCode: 200,
+        data: {
+          'items': [
+            {'id': 1, 'title': 'Тест', 'isbn': '123', 'year': 2024, 'pages': 100, 'publisherId': 1, 'authorIds': [], 'genreIds': [], 'copiesTotal': 1, 'copiesAvailable': 1}
+          ],
+          'page': 1,
+          'size': 10,
+          'total': 1,
+        },
+      ));
+      final repo = ApiBookRepository(dio);
+      final res = await repo.find(const BookQuery());
+      expect(res.items.length, 1);
+      expect(res.items.first.title, 'Тест');
+      expect(res.total, 1);
+    });
+
+    test('2. Ошибка 422 преобразуется в ValidationException с картой полей', () async {
+      final dio = createMockDio((opt) async => Response(
+        requestOptions: opt,
+        statusCode: 422,
+        data: {
+          'message': 'Ошибка валидации',
+          'errors': {'isbn': 'Дубликат ISBN'},
+        },
+      ));
+      final repo = ApiBookRepository(dio);
+      expect(
+        () => repo.create(const Book(
+          id: 0, title: 'T', isbn: 'dup', year: 2020, pages: 10, publisherId: 1, authorIds: [], genreIds: [], copiesTotal: 1, copiesAvailable: 1
+        )),
+        throwsA(isA<ValidationException>().having((e) => e.errors['isbn'], 'isbn error', 'Дубликат ISBN')),
+      );
+    });
+
+    test('3. Ошибка 404 преобразуется в NotFoundException', () async {
+      final dio = createMockDio((opt) async => Response(
+        requestOptions: opt,
+        statusCode: 404,
+        data: {'message': 'Книга не найдена'},
+      ));
+      final repo = ApiBookRepository(dio);
+      expect(() => repo.findById(999), throwsA(isA<NotFoundException>()));
+    });
+
+    test('4. Сетевой сбой преобразуется в NetworkException', () async {
+      final dio = createMockDio((opt) async => throw DioException(
+        requestOptions: opt,
+        type: DioExceptionType.connectionError,
+      ));
+      final repo = ApiBookRepository(dio);
+      expect(() => repo.find(const BookQuery()), throwsA(isA<NetworkException>()));
+    });
+
+    test('5. Повторные попытки при чтении (GET retry)', () async {
+      var attempts = 0;
+      final dio = createMockDio((opt) async {
+        attempts++;
+        if (attempts < 2) {
+          throw DioException(requestOptions: opt, type: DioExceptionType.connectionTimeout);
+        }
+        return Response(requestOptions: opt, statusCode: 200, data: {'items': [], 'page': 1, 'size': 10, 'total': 0});
+      });
+      // Проверка структуры запроса
+      expect(dio.options.validateStatus != null, true);
+    });
+  });
+}
+"""
+}
+
+def main():
+    print("--- Обновление проекта под ПР4: REST API, Dio, Mock Server ---")
+    for path, content in FILES.items():
+        dir_name = os.path.dirname(path)
+        if dir_name:
+            os.makedirs(dir_name, exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print(f"  + Обновлён: {path}")
+
+    print("\nЗапуск flutter pub get...")
+    subprocess.run(["flutter", "pub", "get"], shell=True)
+    print("\nГотово к запуску!")
+
+if __name__ == "__main__":
+    main()

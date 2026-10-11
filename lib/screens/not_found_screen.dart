@@ -13,7 +13,8 @@ class NotFoundScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('404: Страница не найдена', style: Theme.of(context).textTheme.headlineMedium),
+            Text('404: Страница не найдена',
+                style: Theme.of(context).textTheme.headlineMedium),
             const SizedBox(height: 8),
             Text('Адрес $location не существует'),
             const SizedBox(height: 16),

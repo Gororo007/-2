@@ -87,14 +87,18 @@ class _AuthorListScreenState extends State<AuthorListScreen> {
       country: resetCountry ? null : (country ?? current.country),
       sortField: sortField ?? current.sortField,
       sortAscending: sortAscending ?? current.sortAscending,
-      page: page ?? (search != null || country != null || resetCountry ? 1 : current.page),
+      page: page ??
+          (search != null || country != null || resetCountry
+              ? 1
+              : current.page),
       size: size ?? current.size,
       includeDeleted: includeDeleted ?? current.includeDeleted,
     );
 
     final params = <String, String>{
       if (nextQuery.search.isNotEmpty) 'search': nextQuery.search,
-      if (nextQuery.country != null && nextQuery.country!.isNotEmpty) 'country': nextQuery.country!,
+      if (nextQuery.country != null && nextQuery.country!.isNotEmpty)
+        'country': nextQuery.country!,
       'sortField': nextQuery.sortField,
       'sortAscending': nextQuery.sortAscending.toString(),
       'page': nextQuery.page.toString(),
@@ -138,10 +142,15 @@ class _AuthorListScreenState extends State<AuthorListScreen> {
                   context: context,
                   builder: (ctx) => AlertDialog(
                     title: const Text('Подтверждение'),
-                    content: Text('Удалить выбранных авторов (${notifier.selected.length} чел.)?'),
+                    content: Text(
+                        'Удалить выбранных авторов (${notifier.selected.length} чел.)?'),
                     actions: [
-                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Отмена')),
-                      FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Удалить')),
+                      TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: const Text('Отмена')),
+                      FilledButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          child: const Text('Удалить')),
                     ],
                   ),
                 );
@@ -187,12 +196,17 @@ class _AuthorListScreenState extends State<AuthorListScreen> {
                     items: const [
                       DropdownMenuItem(value: null, child: Text('Все страны')),
                       DropdownMenuItem(value: 'Россия', child: Text('Россия')),
-                      DropdownMenuItem(value: 'Великобритания', child: Text('Великобритания')),
+                      DropdownMenuItem(
+                          value: 'Великобритания',
+                          child: Text('Великобритания')),
                       DropdownMenuItem(value: 'США', child: Text('США')),
-                      DropdownMenuItem(value: 'Германия', child: Text('Германия')),
-                      DropdownMenuItem(value: 'Колумбия', child: Text('Колумбия')),
+                      DropdownMenuItem(
+                          value: 'Германия', child: Text('Германия')),
+                      DropdownMenuItem(
+                          value: 'Колумбия', child: Text('Колумбия')),
                     ],
-                    onChanged: (val) => _applyFilters(country: val, resetCountry: val == null),
+                    onChanged: (val) =>
+                        _applyFilters(country: val, resetCountry: val == null),
                   ),
                 ),
               ],
@@ -201,7 +215,8 @@ class _AuthorListScreenState extends State<AuthorListScreen> {
           const Divider(height: 1),
           Expanded(
             child: switch (notifier.status) {
-              LoadStatus.idle || LoadStatus.loading =>
+              LoadStatus.idle ||
+              LoadStatus.loading =>
                 const Center(child: CircularProgressIndicator()),
               LoadStatus.error => Center(
                   child: Column(
@@ -209,12 +224,15 @@ class _AuthorListScreenState extends State<AuthorListScreen> {
                     children: [
                       Text(notifier.error ?? 'Ошибка'),
                       const SizedBox(height: 8),
-                      FilledButton(onPressed: notifier.load, child: const Text('Повторить')),
+                      FilledButton(
+                          onPressed: notifier.load,
+                          child: const Text('Повторить')),
                     ],
                   ),
                 ),
               LoadStatus.success when notifier.result.items.isEmpty =>
-                const Center(child: Text('Авторов по заданным критериям не найдено')),
+                const Center(
+                    child: Text('Авторов по заданным критериям не найдено')),
               LoadStatus.success => isCompact
                   ? _buildCardList(context, notifier)
                   : _buildTable(context, notifier),
@@ -242,7 +260,9 @@ class _AuthorListScreenState extends State<AuthorListScreen> {
       sortField: notifier.query.sortField,
       sortAscending: notifier.query.sortAscending,
       onSort: (field) {
-        final asc = field == notifier.query.sortField ? !notifier.query.sortAscending : true;
+        final asc = field == notifier.query.sortField
+            ? !notifier.query.sortAscending
+            : true;
         _applyFilters(sortField: field, sortAscending: asc);
       },
       columns: [
@@ -251,12 +271,23 @@ class _AuthorListScreenState extends State<AuthorListScreen> {
           sortField: 'lastName',
           build: (a) => InkWell(
             onTap: () => context.go('/authors/${a.id}'),
-            child: Text(a.lastName, style: const TextStyle(fontWeight: FontWeight.bold)),
+            child: Text(a.lastName,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
         ),
-        TableColumnSpec(label: 'Имя', sortField: 'firstName', build: (a) => Text(a.firstName)),
-        TableColumnSpec(label: 'Страна', sortField: 'country', build: (a) => Text(a.country)),
-        TableColumnSpec(label: 'Год рождения', sortField: 'birthYear', numeric: true, build: (a) => Text('${a.birthYear}')),
+        TableColumnSpec(
+            label: 'Имя',
+            sortField: 'firstName',
+            build: (a) => Text(a.firstName)),
+        TableColumnSpec(
+            label: 'Страна',
+            sortField: 'country',
+            build: (a) => Text(a.country)),
+        TableColumnSpec(
+            label: 'Год рождения',
+            sortField: 'birthYear',
+            numeric: true,
+            build: (a) => Text('${a.birthYear}')),
       ],
       actions: (a) => [
         IconButton(
@@ -289,19 +320,28 @@ class _AuthorListScreenState extends State<AuthorListScreen> {
         final isSelected = notifier.selected.contains(a.id);
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 4),
-          color: isSelected ? Theme.of(context).colorScheme.primaryContainer : null,
+          color: isSelected
+              ? Theme.of(context).colorScheme.primaryContainer
+              : null,
           child: ListTile(
             leading: Checkbox(
               value: isSelected,
               onChanged: (_) => notifier.toggleSelection(a.id),
             ),
-            title: Text(a.fullName, style: TextStyle(decoration: a.isDeleted ? TextDecoration.lineThrough : null)),
+            title: Text(a.fullName,
+                style: TextStyle(
+                    decoration:
+                        a.isDeleted ? TextDecoration.lineThrough : null)),
             subtitle: Text('${a.country} · родился в ${a.birthYear} г.'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(icon: const Icon(Icons.edit), onPressed: () => context.go('/authors/${a.id}/edit')),
-                IconButton(icon: const Icon(Icons.chevron_right), onPressed: () => context.go('/authors/${a.id}')),
+                IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () => context.go('/authors/${a.id}/edit')),
+                IconButton(
+                    icon: const Icon(Icons.chevron_right),
+                    onPressed: () => context.go('/authors/${a.id}')),
               ],
             ),
           ),

@@ -1,0 +1,47 @@
+name: Сборка и публикация на GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Клонирование репозитория
+        uses: actions/checkout@v4
+
+      - name: Установка Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Установка Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Установка зависимостей
+        run: flutter pub get
+
+      - name: Анализ кода (flutter analyze)
+        run: flutter analyze
+
+      - name: Проверка форматирования кода
+        run: dart format --set-exit-if-changed lib test
+
+      - name: Запуск модульных тестов и тестов виджетов
+        run: flutter test
+
+      - name: Сборка Web-версии
+        run: |
+          flutter build web --release --base-href /${{ github.event.repository.name }}/
+          cp build/web/index.html build/web/404.html
+
+      - name: Публикация в ветку gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web

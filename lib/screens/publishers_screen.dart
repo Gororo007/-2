@@ -38,7 +38,9 @@ class _PublishersScreenState extends State<PublishersScreen> {
     final res = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(publisher == null ? 'Новое издательство' : 'Редактирование издательства'),
+        title: Text(publisher == null
+            ? 'Новое издательство'
+            : 'Редактирование издательства'),
         content: Form(
           key: formKey,
           child: Column(
@@ -47,17 +49,24 @@ class _PublishersScreenState extends State<PublishersScreen> {
               TextFormField(
                 controller: nameCtrl,
                 decoration: const InputDecoration(labelText: 'Название *'),
-                validator: V.combine([V.required(), V.length(min: 2, max: 100)]),
+                validator:
+                    V.combine([V.required(), V.length(min: 2, max: 100)]),
               ),
               const SizedBox(height: 12),
-              TextFormField(controller: cityCtrl, decoration: const InputDecoration(labelText: 'Город')),
+              TextFormField(
+                  controller: cityCtrl,
+                  decoration: const InputDecoration(labelText: 'Город')),
               const SizedBox(height: 12),
-              TextFormField(controller: webCtrl, decoration: const InputDecoration(labelText: 'Веб-сайт')),
+              TextFormField(
+                  controller: webCtrl,
+                  decoration: const InputDecoration(labelText: 'Веб-сайт')),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Отмена')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Отмена')),
           FilledButton(
             onPressed: () {
               if (formKey.currentState!.validate()) Navigator.pop(ctx, true);
@@ -71,9 +80,16 @@ class _PublishersScreenState extends State<PublishersScreen> {
     if (res == true) {
       final repo = context.read<PublisherRepository>();
       if (publisher == null) {
-        await repo.create(Publisher(id: 0, name: nameCtrl.text.trim(), city: cityCtrl.text.trim(), website: webCtrl.text.trim()));
+        await repo.create(Publisher(
+            id: 0,
+            name: nameCtrl.text.trim(),
+            city: cityCtrl.text.trim(),
+            website: webCtrl.text.trim()));
       } else {
-        await repo.update(publisher.copyWith(name: nameCtrl.text.trim(), city: cityCtrl.text.trim(), website: webCtrl.text.trim()));
+        await repo.update(publisher.copyWith(
+            name: nameCtrl.text.trim(),
+            city: cityCtrl.text.trim(),
+            website: webCtrl.text.trim()));
       }
       _load();
     }
@@ -91,7 +107,9 @@ class _PublishersScreenState extends State<PublishersScreen> {
             title: const Text('Отказ в удалении'),
             content: Text(e.toString().replaceAll('StateError: ', '')),
             actions: [
-              FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('Понятно')),
+              FilledButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Понятно')),
             ],
           ),
         );
@@ -123,13 +141,18 @@ class _PublishersScreenState extends State<PublishersScreen> {
                 final p = _publishers[idx];
                 return ListTile(
                   leading: const CircleAvatar(child: Icon(Icons.business)),
-                  title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  title: Text(p.name,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text('${p.city} · ${p.website}'),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      IconButton(icon: const Icon(Icons.edit), onPressed: () => _editPublisher(p)),
-                      IconButton(icon: const Icon(Icons.delete_outline), onPressed: () => _deletePublisher(p)),
+                      IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () => _editPublisher(p)),
+                      IconButton(
+                          icon: const Icon(Icons.delete_outline),
+                          onPressed: () => _deletePublisher(p)),
                     ],
                   ),
                 );

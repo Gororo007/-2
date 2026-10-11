@@ -22,7 +22,8 @@ class PersistentReaderRepository implements ReaderRepository {
     }
     try {
       final list = jsonDecode(raw) as List;
-      _readers = list.map((e) => Reader.fromJson(e as Map<String, dynamic>)).toList();
+      _readers =
+          list.map((e) => Reader.fromJson(e as Map<String, dynamic>)).toList();
     } catch (_) {
       _readers = [...seedReaders];
       _persist();
@@ -30,11 +31,13 @@ class PersistentReaderRepository implements ReaderRepository {
   }
 
   Future<void> _persist() async {
-    await _prefs.setString(_key, jsonEncode(_readers.map((r) => r.toJson()).toList()));
+    await _prefs.setString(
+        _key, jsonEncode(_readers.map((r) => r.toJson()).toList()));
   }
 
   @override
-  Future<List<Reader>> findAll({bool includeDeleted = false, String search = ''}) async {
+  Future<List<Reader>> findAll(
+      {bool includeDeleted = false, String search = ''}) async {
     var rows = _readers.where((r) => includeDeleted || !r.isDeleted).toList();
     if (search.trim().isNotEmpty) {
       final q = search.trim().toLowerCase();
@@ -57,12 +60,15 @@ class PersistentReaderRepository implements ReaderRepository {
   @override
   Future<Reader> create(Reader reader) async {
     // Проверка уникальности email
-    final exists = _readers.any((r) => r.email.toLowerCase() == reader.email.toLowerCase() && !r.isDeleted);
+    final exists = _readers.any((r) =>
+        r.email.toLowerCase() == reader.email.toLowerCase() && !r.isDeleted);
     if (exists) {
       throw StateError('Читатель с такой почтой уже существует');
     }
 
-    final id = _readers.isEmpty ? 1 : (_readers.map((e) => e.id).reduce((a, b) => a > b ? a : b) + 1);
+    final id = _readers.isEmpty
+        ? 1
+        : (_readers.map((e) => e.id).reduce((a, b) => a > b ? a : b) + 1);
     final card = reader.card.copyWith();
     final created = Reader(
       id: id,

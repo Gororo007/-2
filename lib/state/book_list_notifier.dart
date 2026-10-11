@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../models/book.dart';
 import '../models/book_query.dart';
@@ -14,6 +15,7 @@ class BookListNotifier extends ChangeNotifier {
   LoadStatus _status = LoadStatus.idle;
   String? _error;
   final Set<int> _selected = {};
+  CancelToken? _cancelToken;
 
   BookQuery get query => _query;
   PageResult<Book> get result => _result;
@@ -23,17 +25,24 @@ class BookListNotifier extends ChangeNotifier {
   bool get hasSelection => _selected.isNotEmpty;
 
   Future<void> load() async {
+    // Оценка «5»: Отмена устаревшего сетевого запроса
+    _cancelToken?.cancel('Запущен новый запрос поиска');
+    final token = CancelToken();
+    _cancelToken = token;
+
     _status = LoadStatus.loading;
     _error = null;
     notifyListeners();
     try {
-      _result = await _repository.find(_query);
+      _result = await _repository.find(_query, cancelToken: token);
       _status = LoadStatus.success;
+      notifyListeners();
     } catch (e) {
-      _error = 'Не удалось загрузить книги: $e';
+      if (token.isCancelled) return;
+      _error = e.toString();
       _status = LoadStatus.error;
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   Future<void> applyQuery(BookQuery next) async {

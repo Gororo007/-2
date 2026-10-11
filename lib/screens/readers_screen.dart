@@ -53,8 +53,10 @@ class _ReadersScreenState extends State<ReadersScreen> {
                 final r = _readers[idx];
                 return ListTile(
                   leading: const CircleAvatar(child: Icon(Icons.badge)),
-                  title: Text(r.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text('${r.email} · ${r.phone}\nБилет: ${r.card.cardNumber}'),
+                  title: Text(r.fullName,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text(
+                      '${r.email} · ${r.phone}\nБилет: ${r.card.cardNumber}'),
                   isThreeLine: true,
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -66,7 +68,9 @@ class _ReadersScreenState extends State<ReadersScreen> {
                       IconButton(
                         icon: const Icon(Icons.delete_outline),
                         onPressed: () async {
-                          await context.read<ReaderRepository>().softDelete(r.id);
+                          await context
+                              .read<ReaderRepository>()
+                              .softDelete(r.id);
                           _load();
                         },
                       ),

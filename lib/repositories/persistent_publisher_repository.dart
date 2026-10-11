@@ -24,7 +24,9 @@ class PersistentPublisherRepository implements PublisherRepository {
     }
     try {
       final list = jsonDecode(raw) as List;
-      _publishers = list.map((e) => Publisher.fromJson(e as Map<String, dynamic>)).toList();
+      _publishers = list
+          .map((e) => Publisher.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       _publishers = [...seedPublishers];
       _persist();
@@ -32,7 +34,8 @@ class PersistentPublisherRepository implements PublisherRepository {
   }
 
   Future<void> _persist() async {
-    await _prefs.setString(_key, jsonEncode(_publishers.map((p) => p.toJson()).toList()));
+    await _prefs.setString(
+        _key, jsonEncode(_publishers.map((p) => p.toJson()).toList()));
   }
 
   @override
@@ -48,7 +51,9 @@ class PersistentPublisherRepository implements PublisherRepository {
 
   @override
   Future<Publisher> create(Publisher publisher) async {
-    final id = _publishers.isEmpty ? 1 : (_publishers.map((e) => e.id).reduce((a, b) => a > b ? a : b) + 1);
+    final id = _publishers.isEmpty
+        ? 1
+        : (_publishers.map((e) => e.id).reduce((a, b) => a > b ? a : b) + 1);
     final created = Publisher(
       id: id,
       name: publisher.name,
@@ -71,10 +76,12 @@ class PersistentPublisherRepository implements PublisherRepository {
 
   @override
   Future<void> deleteWithCheck(int id) async {
-    final books = await _bookRepo.getAllRaw();
-    final count = books.where((b) => b.publisherId == id && !b.isDeleted).length;
+    final books = _bookRepo.getAllRaw();
+    final count =
+        books.where((b) => b.publisherId == id && !b.isDeleted).length;
     if (count > 0) {
-      throw StateError('Невозможно удалить издательство: к нему привязано книг ($count шт.)');
+      throw StateError(
+          'Невозможно удалить издательство: к нему привязано книг ($count шт.)');
     }
     final i = _publishers.indexWhere((p) => p.id == id);
     if (i != -1) {

@@ -27,6 +27,78 @@ class Book {
 
   bool get isDeleted => deletedAt != null;
 
+  factory Book.fromJson(Map<String, dynamic> json) {
+    int parsePubId() {
+      if (json['publisherId'] != null) {
+        return (json['publisherId'] as num).toInt();
+      }
+      if (json['publisher'] is Map && json['publisher']['id'] != null) {
+        return (json['publisher']['id'] as num).toInt();
+      }
+      return 1;
+    }
+
+    List<int> parseAuthorIds() {
+      if (json['authorIds'] is List) {
+        return (json['authorIds'] as List)
+            .map((e) => (e as num).toInt())
+            .toList();
+      }
+      if (json['authors'] is List) {
+        return (json['authors'] as List)
+            .map(
+                (e) => e is Map ? (e['id'] as num).toInt() : (e as num).toInt())
+            .toList();
+      }
+      return const [];
+    }
+
+    List<int> parseGenreIds() {
+      if (json['genreIds'] is List) {
+        return (json['genreIds'] as List)
+            .map((e) => (e as num).toInt())
+            .toList();
+      }
+      if (json['genres'] is List) {
+        return (json['genres'] as List)
+            .map(
+                (e) => e is Map ? (e['id'] as num).toInt() : (e as num).toInt())
+            .toList();
+      }
+      return const [];
+    }
+
+    return Book(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      title: json['title'] as String? ?? '',
+      isbn: json['isbn'] as String? ?? '',
+      year: (json['year'] as num?)?.toInt() ?? 0,
+      pages: (json['pages'] as num?)?.toInt() ?? 0,
+      publisherId: parsePubId(),
+      authorIds: parseAuthorIds(),
+      genreIds: parseGenreIds(),
+      copiesTotal: (json['copiesTotal'] as num?)?.toInt() ?? 0,
+      copiesAvailable: (json['copiesAvailable'] as num?)?.toInt() ?? 0,
+      deletedAt: json['deletedAt'] != null
+          ? DateTime.tryParse(json['deletedAt'].toString())
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'isbn': isbn,
+        'year': year,
+        'pages': pages,
+        'publisherId': publisherId,
+        'authorIds': authorIds,
+        'genreIds': genreIds,
+        'copiesTotal': copiesTotal,
+        'copiesAvailable': copiesAvailable,
+        if (deletedAt != null) 'deletedAt': deletedAt!.toIso8601String(),
+      };
+
   Book copyWith({
     String? title,
     String? isbn,
@@ -54,34 +126,4 @@ class Book {
       deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),
     );
   }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'isbn': isbn,
-        'year': year,
-        'pages': pages,
-        'publisherId': publisherId,
-        'authorIds': authorIds,
-        'genreIds': genreIds,
-        'copiesTotal': copiesTotal,
-        'copiesAvailable': copiesAvailable,
-        'deletedAt': deletedAt?.toIso8601String(),
-      };
-
-  factory Book.fromJson(Map<String, dynamic> json) => Book(
-        id: json['id'] as int? ?? 0,
-        title: json['title'] as String? ?? '',
-        isbn: json['isbn'] as String? ?? '',
-        year: json['year'] as int? ?? 0,
-        pages: json['pages'] as int? ?? 0,
-        publisherId: json['publisherId'] as int? ?? 0,
-        authorIds: (json['authorIds'] as List?)?.cast<int>() ?? const [],
-        genreIds: (json['genreIds'] as List?)?.cast<int>() ?? const [],
-        copiesTotal: json['copiesTotal'] as int? ?? 0,
-        copiesAvailable: json['copiesAvailable'] as int? ?? 0,
-        deletedAt: json['deletedAt'] == null
-            ? null
-            : DateTime.tryParse(json['deletedAt'] as String),
-      );
 }
